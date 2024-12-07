@@ -23,6 +23,8 @@ DNS amplification is a type of Distributed Denial of Service (DDoS) attack where
 - Instead of having to crawl by yourself to find domains, uses data provided by CommonCrawl.org 
 - Checks if a domain has an A record before making further requests.
 - Chooses a random resolver and iterates over selected qtypes to send requests to the challenge host.
+- Calculates the amplification factor and if it is high, the domain, resolver and qtype are logged which can be used for further manual testing.
+- Can use the multithreaded script so the dns calculation requests don't block the api requests.
 - The commoncrawl domains file is big, but I still chose to load the entire thing in memory. If this causes issues, please download more RAM (https://downloadmoreram.com/download.html).
 
 ## Usage
@@ -36,7 +38,7 @@ DNS amplification is a type of Distributed Denial of Service (DDoS) attack where
    - Place your domain vertices data file in the appropriate directory.
 3. **Running the Script**:
    - Update the `file_path` variable to point to your domain vertices data file.
-   - Run the script (probably a good idea to use a "screen" session)
+   - Run either the normal or multithread script (probably a good idea to use a "screen" session)
 
 ## EULA
 
