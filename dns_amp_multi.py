@@ -3,6 +3,10 @@ from random import choice, randint
 from time import sleep
 from scapy.all import DNS, DNSQR, IP, sr1, UDP
 import random
+import threading
+from concurrent.futures import ThreadPoolExecutor  # Import ThreadPoolExecutor
+import os
+import multiprocessing
 
 challenge_host = "http://64.23.208.78"
 file_path = 'commoncrawl.txt'
@@ -109,33 +113,36 @@ def calculate_amplification_factor(domain, resolver, record_type):
     else:
         return 0
 
+def threaded_calculate_and_store(domain, resolver, record_type):
+    amplification_factor = calculate_amplification_factor(domain, resolver, record_type)
+    print(f"\033[{randint(31,37)}mAmp Factor = {amplification_factor} for URL: {domain} with resolver: {resolver} and record type: {record_type}\033[0m")
+    if amplification_factor > 100:
+        store_log(domain, resolver, record_type, amplification_factor)
+
 # Call the api with the domain, resolver and record type
 def call_api(domain, resolver, record_type):
     api_url = f"{challenge_host}/api_query?resolver={resolver}&port=53&domain={domain}&qtype={record_type}&studentno=300352269"
     response = fetch(api_url)
     return response
 
-def submit_request(domain):
+def submit_request(domain, executor):
     resolver = choice(dns_resolver_ips)
     # check if the domain is active and has an A record, else no point checking other record types
     initial_response = call_api(domain, "1.1.1.1", 1)
     if not initial_response:
         print(f"Didnt find A record for {domain}")
         return
+    
     for record_type in record_types:
         try:
             sleep(1)
             response = call_api(domain, resolver, record_type)
             if response: # colorful output to make my serial console look cool
-                amplification_factor = calculate_amplification_factor(domain, resolver, record_type)
-                print(f"\033[{randint(31,37)}mAmp Factor = {amplification_factor} for URL: {domain} with resolver: {resolver} and record type: {record_type}\033[0m")
-                if amplification_factor > 100:
-                    store_log(domain, resolver, record_type, amplification_factor)
+                executor.submit(threaded_calculate_and_store, domain, resolver, record_type)
             else:
                 print(f"\033[{randint(31,37)}mNo response for URL: {domain} with resolver: {resolver} and record type: {record_type}\033[0m")
         except Exception as e:
             print(f"Error occurred for URL: {domain} with resolver: {resolver} and record type: {record_type} - {e}")
-
 
 def main():
     print(intro)
@@ -143,12 +150,17 @@ def main():
     with open(file_path, 'r') as file:
         lines = file.readlines()
 
-    while True:
-        # pick a random line from the file and process it
-        random_line = random.sample(lines, 1)[0]
-        domain = process_line(random_line)
-        if domain:
-            submit_request(domain)
+    # Get the number of logical processors
+    num_logical_processors = os.cpu_count()
+    print(f"Number of logical processors: {num_logical_processors}")
+
+    with ThreadPoolExecutor(max_workers=num_logical_processors) as executor:  # Use the number of logical processors
+        while True:
+            # pick a random line from the file and process it
+            random_line = choice(lines)
+            domain = process_line(random_line)
+            if domain:
+                submit_request(domain, executor)
 
 if __name__ == '__main__':
     main()

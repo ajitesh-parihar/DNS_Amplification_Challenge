@@ -1,5 +1,13 @@
-# DNS Amplification Challenge
 
+# DNS Amplification Challenge
+```
+          _   _______    ___  __   __ _______ 
+    /\   | \ | \  ___)  / _ \|  \ /  (   _   )
+   /  \  |  \| |\ \    | |_| |   v   || | | | 
+  / /\ \ |     | > >   |  _  | |\_/| || | | | 
+ / /__\ \| |\  |/ /__  | | | | |   | || | | | 
+/________\_| \_/_____) |_| |_|_|   |_||_| |_| 
+```
 This project was created for the DNS Amplification Challenge in the COSC 417 Topics in Networking course. The goal of this challenge is to identify the combination of DNS resolvers, domains and query types (`qtypes`) that result in the highest amplification ratios.
 
 Shoutouts to CommonCrawl.org for crawling and gathering lists of domains.
